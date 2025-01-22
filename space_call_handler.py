@@ -89,6 +89,7 @@ class SpaceCallHandler:
 
 def run_tests():
     print("Test 1: Basic functionality")
+    audio_space_table.reset()
     handler = SpaceCallHandler()
     print("Initial state:", handler.get_status())
     handler.start_call()
@@ -99,6 +100,7 @@ def run_tests():
     print("After end:", handler.get_status())
 
     print("\nTest 2: Network issues")
+    audio_space_table.reset()
     handler = SpaceCallHandler()
     handler.start_call()
     for i in range(5):
@@ -107,6 +109,7 @@ def run_tests():
         print(f"After toggle {i+1}:", handler.get_status())
 
     print("\nTest 3: Multiple active spaces")
+    audio_space_table.reset()
     handlers = [SpaceCallHandler() for _ in range(3)]
     for i, h in enumerate(handlers):
         h.start_call()
