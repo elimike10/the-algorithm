@@ -47,4 +47,10 @@ class AudioSpaceTable:
         with self.lock:
             return sum(1 for space in self.started_spaces if space not in self.finished_spaces)
 
+    def reset(self):
+        with self.lock:
+            self.started_spaces.clear()
+            self.finished_spaces.clear()
+            self.timestamped_space_events.clear()
+
 audio_space_table = AudioSpaceTable()
