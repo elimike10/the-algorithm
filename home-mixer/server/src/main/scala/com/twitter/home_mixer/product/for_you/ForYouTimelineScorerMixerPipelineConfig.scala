@@ -31,6 +31,8 @@ import com.twitter.home_mixer.product.for_you.side_effect.ServedCandidateFeature
 import com.twitter.home_mixer.product.for_you.side_effect.ServedCandidateKeysKafkaSideEffectBuilder
 import com.twitter.home_mixer.product.for_you.side_effect.ServedStatsSideEffect
 import com.twitter.home_mixer.util.CandidatesUtil
+import com.twitter.home_mixer.product.for_you.feature_hydrator.ClickbaitTweetFeatureHydrator
+import com.twitter.home_mixer.product.for_you.selector.ClickbaitTweetDemotionSelector
 import com.twitter.inject.annotations.Flag
 import com.twitter.logpipeline.client.common.EventPublisher
 import com.twitter.product_mixer.component_library.feature_hydrator.query.async.AsyncQueryFeatureHydrator
@@ -147,6 +149,7 @@ class ForYouTimelineScorerMixerPipelineConfig @Inject() (
     persistenceStoreQueryFeatureHydrator,
     timelineServiceTweetsQueryFeatureHydrator,
     feedbackHistoryQueryFeatureHydrator,
+    new ClickbaitTweetFeatureHydrator,
     previewCreatorsQueryFeatureHydrator,
     sgsFollowedUsersQueryFeatureHydrator,
     AsyncQueryFeatureHydrator(dependentCandidatesStep, dismissInfoQueryFeatureHydrator),
@@ -215,6 +218,7 @@ class ForYouTimelineScorerMixerPipelineConfig @Inject() (
       ordering = CandidatesUtil.scoreOrdering,
       candidatePipeline = forYouTimelineScorerCandidatePipelineConfig.identifier
     ),
+    new ClickbaitTweetDemotionSelector,
     UpdateSortModuleItemCandidates(
       candidatePipeline = forYouTimelineScorerCandidatePipelineConfig.identifier,
       ordering = CandidatesUtil.conversationModuleTweetsOrdering
