@@ -1,13 +1,14 @@
 
 import sys
 import os
+import random
+import uuid
 
 # Add the directory containing the audio_space_table.py to the Python path
 sys.path.append('/home/user/the-algorithm')
 
 from spaces_config import SpacesConfig
 from audio_space_table import audio_space_table
-import uuid
 
 class SpaceCallHandler:
     def __init__(self):
@@ -15,6 +16,7 @@ class SpaceCallHandler:
         self.audio_stream = None
         self.video_stream = None
         self.space_id = None
+        self.network_stable = True
 
     def start_call(self):
         if self.space_id:
@@ -51,6 +53,13 @@ class SpaceCallHandler:
     def _start_video_stream(self):
         return "Video stream started"
 
+    def simulate_network_issue(self):
+        self.network_stable = random.choice([True, False])
+        if not self.network_stable and self.video_stream:
+            self.video_stream = None
+            self.config.set_mode("audio_only")
+            print("Network issue detected. Switched to audio-only mode.")
+
     def toggle_video(self):
         if not self.space_id:
             print("Cannot toggle video: No active call.")
@@ -58,9 +67,12 @@ class SpaceCallHandler:
 
         try:
             if self.config.get_mode() == "audio_only":
-                self.config.set_mode("video_enabled")
-                self.video_stream = self._start_video_stream()
-                print("Video enabled")
+                if self.network_stable:
+                    self.config.set_mode("video_enabled")
+                    self.video_stream = self._start_video_stream()
+                    print("Video enabled")
+                else:
+                    print("Cannot enable video due to network issues.")
             else:
                 self.config.set_mode("audio_only")
                 self.video_stream = None
@@ -75,45 +87,34 @@ class SpaceCallHandler:
             return "No active call"
         return f"Space ID: {self.space_id}, Mode: {self.config.get_mode()}, Audio: {'Active' if self.audio_stream else 'Inactive'}, Video: {'Active' if self.video_stream else 'Inactive'}"
 
-# Test the implementation
 def run_tests():
+    print("Test 1: Basic functionality")
     handler = SpaceCallHandler()
-    
-    print("Test 1: Initial state")
-    print(handler.get_status())
-
-    print("\nTest 2: Starting call")
+    print("Initial state:", handler.get_status())
     handler.start_call()
-    print(handler.get_status())
-
-    print("\nTest 3: Toggling video")
+    print("After start:", handler.get_status())
     handler.toggle_video()
-    print(handler.get_status())
-
-    print("\nTest 4: Toggling video again")
-    handler.toggle_video()
-    print(handler.get_status())
-
-    print("\nTest 5: Ending call")
+    print("After video toggle:", handler.get_status())
     handler.end_call()
-    print(handler.get_status())
+    print("After end:", handler.get_status())
 
-    print("\nTest 6: Toggling video on ended call")
-    handler.toggle_video()
-
-    print("\nTest 7: Starting call with video enabled")
-    handler.config.set_mode("video_enabled")
+    print("\nTest 2: Network issues")
+    handler = SpaceCallHandler()
     handler.start_call()
-    print(handler.get_status())
+    for i in range(5):
+        handler.simulate_network_issue()
+        handler.toggle_video()
+        print(f"After toggle {i+1}:", handler.get_status())
 
-    print("\nTest 8: Multiple call starts")
-    handler.start_call()
-
-    print("\nTest 9: Ending call multiple times")
-    handler.end_call()
-    handler.end_call()
-
-    print("\nTest 10: Number of live audio spaces")
+    print("\nTest 3: Multiple active spaces")
+    handlers = [SpaceCallHandler() for _ in range(3)]
+    for i, h in enumerate(handlers):
+        h.start_call()
+        print(f"Handler {i+1}:", h.get_status())
     print(f"Live audio spaces: {audio_space_table.get_number_of_live_audio_spaces()}")
+    for h in handlers:
+        h.end_call()
+    print(f"Live audio spaces after ending all calls: {audio_space_table.get_number_of_live_audio_spaces()}")
 
-run_tests()
+if __name__ == "__main__":
+    run_tests()
